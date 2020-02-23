@@ -1,12 +1,12 @@
 # Dockerized
 
-## Build
+Build docker:
 
-docker build . -t broadlink2mqtt
+```docker build . -t broadlink2mqtt```
 
-## Run
+Run:
 
-docker run -it --name broadlink2mqtt -v ./data:/broadlink-mqtt/data broadlink2mqtt 
+```docker run -it --name broadlink2mqtt -v ./data:/broadlink-mqtt/data broadlink2mqtt```
 
 # MQTT client to control BroadLink devices
  

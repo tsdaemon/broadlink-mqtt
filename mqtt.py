@@ -12,6 +12,7 @@ import sched
 import json
 from threading import Thread
 from test import TestDevice
+import binascii
 
 HAVE_TLS = True
 try:
@@ -93,7 +94,7 @@ def on_message(client, device, msg):
         return
 
     try:
-        action = str(msg.payload).lower()
+        action = msg.payload.decode("utf-8").lower().strip()
         logging.debug("Received MQTT message " + msg.topic + " " + action)
 
         if command == 'power':
@@ -181,7 +182,7 @@ def record(device, file):
         if not os.path.exists(directory):
             os.makedirs(directory)
         with open(file, 'wb') as f:
-            f.write(str(ir_packet).encode('hex'))
+            f.write(binascii.hexlify(str(ir_packet)))
         logging.debug("Done")
     else:
         logging.warn("No command received")
@@ -190,8 +191,8 @@ def record(device, file):
 def replay(device, file):
     logging.debug("Replaying command from file " + file)
     with open(file, 'rb') as f:
-        ir_packet = f.read()
-    device.send_data(ir_packet.strip().decode('hex'))
+        ir_packet = binascii.unhexlify(f.read()).strip()
+    device.send_data(ir_packet)
 
 
 def macro(device, file):
@@ -274,8 +275,6 @@ def configure_device(device, mqtt_prefix):
     broadlink_rm_temperature_interval = cf.get('broadlink_rm_temperature_interval', 0)
     if device.type == 'RM2' and broadlink_rm_temperature_interval > 0:
         scheduler = sched.scheduler(time.time, time.sleep)
-        scheduler.enter(broadlink_rm_temperature_interval, 1, broadlink_rm_temperature_timer,
-                        [scheduler, broadlink_rm_temperature_interval, device, mqtt_prefix])
         # scheduler.run()
         tt = SchedulerThread(scheduler)
         tt.daemon = True
